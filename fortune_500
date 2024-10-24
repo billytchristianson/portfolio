@@ -1,4 +1,4 @@
--- Fake Fortune 500 Database
+-- This project utilized data from the following Fortune 500 Dataset:
 
 CREATE TABLE fortune_companies (
     company_id INTEGER PRIMARY KEY,
@@ -58,7 +58,10 @@ VALUES
     ('Company JJ', 'Manufacturing', 370.0, 3100, 1, 20, 12, 7.6),
     ('Company KK', 'Healthcare', 150.2, 3400, 0, 16, 8, 5.3);
 
+-- The following SQL was written to answer specific questions about the Fortune 500 companies:
+
 -- categorize companies based on revenue
+
 SELECT company_name, revenue,
 CASE WHEN revenue < 200 THEN 'Low'
 WHEN revenue >= 200 AND revenue < 400 THEN 'Medium'
@@ -68,6 +71,7 @@ FROM fortune_companies
 ORDER BY revenue desc;
 
 -- find industries that have more than 5 companies in the Fortune 500
+
 SELECT industry, COUNT(company_name) AS company_count
 FROM fortune_companies
 GROUP BY industry
@@ -75,6 +79,7 @@ HAVING company_count >= 5
 ORDER BY company_count desc;
 
 -- find all industries where the average revenue is greater than 300
+
 SELECT industry, AVG(revenue) AS avg_revenue
 FROM fortune_companies
 GROUP BY industry
@@ -82,18 +87,21 @@ HAVING avg_revenue >= 300
 ORDER BY avg_revenue desc;
 
 -- find companies who have > 300 revenue & > 200000 employees
+
 SELECT company_name, revenue, employees
 FROM fortune_companies
 WHERE revenue >= 300 AND employees >= 200000
 ORDER BY revenue desc;
 
--- find companies who have > 300 revenue OR >100000 employees
+-- find companies who have > 300 revenue OR > 100000 employees
+
 SELECT company_name, revenue, employees
 FROM fortune_companies
 WHERE revenue >= 300 OR employees >= 100000
 ORDER BY revenue desc;
 
 -- find companies who have > 200 revenue OR in the Tech industry AND have > 50000 employees
+
 SELECT company_name, industry, revenue, employees
 FROM fortune_companies
 WHERE (revenue >= 200 OR industry = 'Technology')
@@ -101,8 +109,9 @@ AND employees >= 50000
 ORDER BY revenue desc;
 
 -- calculate total revenue per industry and max employees per industry
+
 SELECT industry,
-	SUM(revenue) AS total_revenue,
-  MAX(employees) AS max_employees
+SUM(revenue) AS total_revenue,
+MAX(employees) AS max_employees
 FROM fortune_companies
 GROUP BY industry;
