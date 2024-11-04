@@ -1,0 +1,58 @@
+-- This project provides insights into city bike lane data using SQL.
+
+-- The data was stored in a table called CityBikeLanes, created and populated to support learning and practice with Common Table Expressions (CTEs) and window functions:
+
+CREATE TABLE BIT_DB.CityBikeLanes (
+    id integer primary key,
+    year_installed year not null,
+    year_updated year not null,
+    street varchar not null,
+    width_feet integer not null,
+    safetyrating integer not null,
+    protected varchar not null
+);
+
+INSERT INTO BIT_DB.CityBikeLanes VALUES
+(1, 2012, 2020, 'Chestnut', 4, 4, 'yes'),
+(2, 2016, 2020, 'Walnut', 4, 3.8, 'yes'),
+(3, 2011, 2020, 'Market', 3.5, 2, 'no'),
+(4, 2008, 2020, 'Locust', 4, 5, 'yes'),
+(5, 2002, 2020, 'South', 4.5, 4.3, 'no');
+-- (Additional data was inserted for a comprehensive dataset)
+
+-- Analysis Questions and SQL Solutions
+
+-- 1. Identifying Bike Lanes with an Average Safety Rating of 4.0 or Higher
+-- To list all bike lanes with an average safety rating of 4.0 or higher, a CTE is used to calculate the average safety rating for each street. The main query then selects these results and labels qualifying streets as "Safe Lane."
+
+WITH safety_avg_cte AS (
+    SELECT
+        street,
+        AVG(safetyrating) AS rating
+    FROM CityBikeLanes
+    GROUP BY street
+)
+SELECT
+    street,
+    rating,
+    CASE
+        WHEN rating >= 4 THEN 'Safe Lane'
+        ELSE ''
+    END AS label
+FROM safety_avg_cte
+WHERE rating >= 4
+ORDER BY rating DESC;
+
+-- 2. Detailed List of Bike Lanes with Ratings, Averages, and Recommendations
+-- This query provides a detailed view of all bike lanes, showing both individual safety ratings and average safety ratings. It also includes a recommendation based on the average rating.
+
+SELECT
+    street,
+    safetyrating,
+    AVG(safetyrating) OVER (PARTITION BY street) AS avg_rating,
+    CASE 
+        WHEN AVG(safetyrating) OVER (PARTITION BY street) >= 4 THEN 'Leave As-Is'
+        WHEN AVG(safetyrating) OVER (PARTITION BY street) < 2.5 THEN 'Remove'
+        ELSE 'Improvements Needed'
+    END AS recommendation
+FROM CityBikeLanes;
