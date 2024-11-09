@@ -1,0 +1,133 @@
+-- SQL Murder Mystery Challenge: https://mystery.knightlab.com/
+-- In this challenge, we use SQL commands and the database schema to solve the murder mystery.
+
+-- Thought Process and Solution to the Murder Mystery:
+
+-- Clue 1: The crime was a murder on Jan. 15, 2018, in SQL City.
+
+-- Step 1: Check available tables in the database.
+SELECT name 
+FROM sqlite_master
+WHERE type = 'table';
+
+-- Step 2: Inspect the structure of the `crime_scene_report` table.
+SELECT sql 
+FROM sqlite_master
+WHERE name = 'crime_scene_report';
+
+-- Table Structure: CREATE TABLE crime_scene_report ( date integer, type text, description text, city text );
+
+-- Step 3: Check data in `crime_scene_report` and narrow it to known details (date = Jan 15, 2018, city = SQL City, type = murder).
+SELECT description 
+FROM crime_scene_report
+WHERE date = 20180115
+AND type = 'murder'
+AND city = 'SQL City';
+
+-- Clue: Security footage shows there were 2 witnesses.
+-- Witness 1: Lives at the last house on "Northwestern Dr".
+-- Witness 2: Named Annabel, lives on "Franklin Ave".
+
+-- Step 4: Identify the person living at the last house on "Northwestern Dr."
+SELECT name, id, address_number, address_street_name
+FROM person
+WHERE address_street_name = 'Northwestern Dr'
+ORDER BY address_number DESC
+LIMIT 1;
+
+-- Witness 1: Morty Schapiro - ID 14887
+
+-- Step 5: Find the ID of Annabel on "Franklin Ave."
+SELECT name, id 
+FROM person
+WHERE name LIKE 'Annabel%'
+AND address_street_name = 'Franklin Ave';
+
+-- Witness 2: Annabel Miller - ID 16371
+
+-- Step 6: Read Morty’s interview transcript for more details.
+SELECT transcript 
+FROM interview
+WHERE person_id = 14887;
+
+-- Transcript: Morty saw a man with a "Get Fit Now Gym" bag (membership starts with "48Z" and is for gold members only).
+-- The man left in a car with a plate containing "H42W".
+
+-- Step 7: Read Annabel’s interview transcript.
+SELECT transcript 
+FROM interview
+WHERE person_id = 16371;
+
+-- Transcript: Annabel recognized the killer from the gym on Jan 9.
+
+-- Step 8: Identify gym members with IDs starting with "48Z."
+SELECT id AS gym_id, name, person_id
+FROM get_fit_now_member
+WHERE id LIKE '48Z%';
+
+-- Possible Matches:
+-- - 48Z38 Tomas Baisley (ID 49550)
+-- - 48Z7A Joe Germuska (ID 28819)
+-- - 48Z55 Jeremy Bowers (ID 67318)
+
+-- Step 9: Check if these members worked out on Jan 9.
+SELECT *
+FROM get_fit_now_check_in
+WHERE membership_id IN ('48Z38', '48Z7A', '48Z55')
+AND check_in_date = '20180109';
+
+-- Possible Suspects Based on Jan 9 Check-ins:
+-- - Joe Germuska (ID 28819)
+-- - Jeremy Bowers (ID 67318)
+
+-- Step 10: Check interviews of the suspects.
+-- Interview of Joe (ID 28819)
+SELECT transcript 
+FROM interview
+WHERE person_id = 28819;
+
+-- No data
+
+-- Interview of Jeremy (ID 67318)
+SELECT transcript 
+FROM interview
+WHERE person_id = 67318;
+
+-- Transcript: Jeremy was hired by a woman around 5'5" or 5'7", with red hair, drives a Tesla Model S, and attended the SQL Symphony Concert 3 times in December 2017.
+
+-- Step 11: Find IDs of women matching this description.
+SELECT id
+FROM drivers_license
+WHERE height BETWEEN 65 AND 67
+AND hair_color = 'red'
+AND car_make = 'Tesla'
+AND gender = 'female';
+
+-- Possible Suspects by License:
+-- - 202298
+-- - 291182
+-- - 918773
+
+-- Step 12: Find the names of the suspects by ID.
+SELECT id, name
+FROM person
+WHERE license_id IN (202298, 291182, 918773);
+
+-- Possible Suspects:
+-- - Red Korb (ID 78881)
+-- - Regina George (ID 90700)
+-- - Miranda Priestly (ID 99716)
+
+-- Step 13: Identify who attended SQL Symphony Concert 3 times in December 2017.
+SELECT person_id, COUNT(date) AS total_events
+FROM facebook_event_checkin
+WHERE date BETWEEN 20171201 AND 20171231
+AND event_name = 'SQL Symphony Concert'
+GROUP BY person_id
+HAVING COUNT(date) = 3;
+
+-- Matches:
+-- - Person ID 24556 (3 times)
+-- - Person ID 99716 (3 times) - Miranda Priestly
+
+-- Conclusion: Miranda Priestly (ID 99716) is the murderer.
