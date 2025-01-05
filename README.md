@@ -11,4 +11,4 @@ Tableau: [Click Here](https://public.tableau.com/app/profile/billy.christianson/
 
 LinkedIn: [Click Here](https://www.linkedin.com/in/billytchristianson/)
 
-Twitter: [Click Here](https://x.com/krafter_eth)
+Twitter: [Click Here](https://x.com/0xKrafter)
